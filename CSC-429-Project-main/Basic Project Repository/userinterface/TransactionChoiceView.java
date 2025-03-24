@@ -26,231 +26,202 @@ import javafx.stage.Stage;
 // project imports
 import impresario.IModel;
 
-/** The class containing the Transaction Choice View  for the ATM application */
+/** The class containing the Account View  for the ATM application */
 //==============================================================
 public class TransactionChoiceView extends View
 {
 
-	// other private data
-	private final int labelWidth = 120;
-	private final int labelHeight = 25;
+    // GUI components
+    protected Button ScoutAddButton;
+    protected Button ScoutRemoveButton;
+    protected Button ScoutModifyButton;
+    protected Button TreeAddButton;
 
-	// GUI components
+    protected Button doneButton;
 
-	private Button depositButton;
-	private Button withdrawButton;
-	private Button transferButton;
-	private Button balanceInquiryButton;
-	private Button imposeServiceChargeButton;
+    // For showing error message
+    protected MessageView statusLog;
 
-	private Button cancelButton;
+    // constructor for this class -- takes a model object
+    //----------------------------------------------------------
+    public TransactionChoiceView(IModel account)
+    {
+        super(account, "TransactionChoiceView");
 
-	private MessageView statusLog;
+        // create a container for showing the contents
+        VBox container = new VBox(10);
+        container.setPadding(new Insets(15, 5, 5, 5));
+        container.setPrefWidth(500);
 
-	// constructor for this class -- takes a model object
-	//----------------------------------------------------------
-	public TransactionChoiceView(IModel teller)
-	{
-		super(teller, "TransactionChoiceView");
+        // Add a title for this panel
+        container.getChildren().add(createTitle());
 
-		// create a container for showing the contents
-		VBox container = new VBox(10);
-		container.setPadding(new Insets(15, 5, 5, 5));
+        // create our GUI components, add them to this Container
+        container.getChildren().add(createFormContent());
 
-		// Add a title for this panel
-		container.getChildren().add(createTitle());
-		
-		// how do you add white space?
-		container.getChildren().add(new Label(" "));
+        container.getChildren().add(createStatusLog("             "));
 
-		// create our GUI components, add them to this Container
-		container.getChildren().add(createFormContents());
+        getChildren().add(container);
 
-		container.getChildren().add(createStatusLog("             "));
-
-		getChildren().add(container);
-
-		populateFields();
-
-		myModel.subscribe("TransactionError", this);
-	}
-
-	// Create the labels and fields
-	//-------------------------------------------------------------
-	private VBox createTitle()
-	{
-		VBox container = new VBox(10);
-		Text titleText = new Text("       Brockport Bank ATM          ");
-		titleText.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-		titleText.setWrappingWidth(300);
-		titleText.setTextAlignment(TextAlignment.CENTER);
-		titleText.setFill(Color.DARKGREEN);
-		container.getChildren().add(titleText);
-
-		String accountHolderGreetingName = (String)myModel.getState("Name");
-		Text welcomeText = new Text("Welcome, " + accountHolderGreetingName + "!");
-		welcomeText.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-		welcomeText.setWrappingWidth(300);
-		welcomeText.setTextAlignment(TextAlignment.CENTER);
-		welcomeText.setFill(Color.DARKGREEN);
-		container.getChildren().add(welcomeText);
-
-		Text inquiryText = new Text("What do you wish to do today?");
-		inquiryText.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		inquiryText.setWrappingWidth(300);
-		inquiryText.setTextAlignment(TextAlignment.CENTER);
-		inquiryText.setFill(Color.BLACK);
-		container.getChildren().add(inquiryText);
-	
-		return container;
-	}
+        // Will need to be changed
+        myModel.subscribe("ServiceCharge", this);
+        myModel.subscribe("UpdateStatusMessage", this);
+    }
 
 
-	// Create the navigation buttons
-	//-------------------------------------------------------------
-	private VBox createFormContents()
-	{
 
-		VBox container = new VBox(15);
+    // Create the title container
+    //-------------------------------------------------------------
+    private Node createTitle()
+    {
+        HBox container = new HBox();
+        container.setAlignment(Pos.CENTER);
 
-		// create the buttons, listen for events, add them to the container
-		HBox dCont = new HBox(10);
-		dCont.setAlignment(Pos.CENTER);
-		depositButton = new Button("Deposit");
-		depositButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		depositButton.setOnAction(new EventHandler<ActionEvent>() {
+        Text titleText = new Text(" Scout Tree Organizer ");
+        titleText.setFont(Font.font("Garamond", FontWeight.BOLD, 20));
+        titleText.setWrappingWidth(300);
+        titleText.setTextAlignment(TextAlignment.CENTER);
+        titleText.setFill(Color.DARKGREEN);
+        container.getChildren().add(titleText);
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	myModel.stateChangeRequest("Deposit", null);    
-            	     }
-        	});
-		dCont.getChildren().add(depositButton);
+        return container;
+    }
 
-		container.getChildren().add(dCont);
+    // Create the main form content
+    //-------------------------------------------------------------
+    private VBox createFormContent() {
+        VBox vbox = new VBox(10);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setPadding(new Insets(20));
 
-		HBox wCont = new HBox(10);
-		wCont.setAlignment(Pos.CENTER);
-		withdrawButton = new Button("Withdraw");
-		withdrawButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		withdrawButton.setOnAction(new EventHandler<ActionEvent>() {
+        ScoutAddButton = createButton("Add Scout");
+        ScoutAddButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                try {
+                    myModel.stateChangeRequest("AddScoutView", null);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	myModel.stateChangeRequest("Withdraw", null);    
-            	     }
-        	});
-		wCont.getChildren().add(withdrawButton);
+        ScoutRemoveButton = createButton("Remove Scout");
+        ScoutRemoveButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                try {
+                    myModel.stateChangeRequest("RemoveScoutView", null);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
-		container.getChildren().add(wCont);
+        ScoutModifyButton = createButton("Modify Scout");
+        ScoutModifyButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                try {
+                    myModel.stateChangeRequest("ModifyScoutView", null);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
-		HBox tCont = new HBox(10);
-		tCont.setAlignment(Pos.CENTER);
-		transferButton = new Button("Transfer");
-		transferButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		transferButton.setOnAction(new EventHandler<ActionEvent>() {
+        TreeAddButton = createButton("Add Tree");
+        TreeAddButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e) {
+                try {
+                    myModel.stateChangeRequest("AddTreeView", null);
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	myModel.stateChangeRequest("Transfer", null);    
-            	     }
-        	});
-		tCont.getChildren().add(transferButton);
+        // Done Button
+        HBox doneCont = new HBox(10);
+        doneCont.setAlignment(Pos.CENTER);
+        doneButton = createButton("Done");
+        doneButton.setPrefWidth(100);
+        doneButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+        doneCont.getChildren().add(doneButton);
+        vbox.getChildren().add(doneCont);
 
-		container.getChildren().add(tCont);
+        // Add all buttons to VBox
+        vbox.getChildren().addAll(
+                ScoutAddButton,
+                ScoutRemoveButton,
+                ScoutModifyButton,
+                TreeAddButton,
+                doneButton
+        );
 
-		HBox biCont = new HBox(10);
-		biCont.setAlignment(Pos.CENTER);
-		balanceInquiryButton = new Button("Balance Inquiry");
-		balanceInquiryButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		balanceInquiryButton.setOnAction(new EventHandler<ActionEvent>() {
+        return vbox;
+    }
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	myModel.stateChangeRequest("BalanceInquiry", null);    
-            	     }
-        	});
-		biCont.getChildren().add(balanceInquiryButton);
 
-		container.getChildren().add(biCont);
+    // Create formatted button
+    //-------------------------------------------------------------
+    private Button createButton(String text) {
+        Button button = new Button(text);
+        button.setFont(Font.font("Garamond", FontWeight.BOLD, 14));
+        button.setPrefWidth(200);
+        button.setPrefHeight(30);
+        return button;
+    }
 
-		HBox iscCont = new HBox(10);
-		iscCont.setAlignment(Pos.CENTER);
-		imposeServiceChargeButton = new Button("Impose Service Charge");
-		imposeServiceChargeButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		imposeServiceChargeButton.setOnAction(new EventHandler<ActionEvent>() {
+    // Create the status log field
+    //-------------------------------------------------------------
+    protected MessageView createStatusLog(String initialMessage)
+    {
+        statusLog = new MessageView(initialMessage);
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	 myModel.stateChangeRequest("ImposeServiceCharge", null);
-            	     }
-        	});
-		iscCont.getChildren().add(imposeServiceChargeButton);
+        return statusLog;
+    }
 
-		container.getChildren().add(iscCont);
+    /**
+     * Update method
+     */
+    //---------------------------------------------------------
+    public void updateState(String key, Object value)
+    {
 
-		HBox doneCont = new HBox(10);
-		doneCont.setAlignment(Pos.CENTER);
-		cancelButton = new Button("Logout");
-		cancelButton.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-		cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+    }
 
-       		     @Override
-       		     public void handle(ActionEvent e) {
-       		     	myModel.stateChangeRequest("Logout", null);    
-            	     }
-        	});
-		doneCont.getChildren().add(cancelButton);
+    /**
+     * Display error message
+     */
+    //----------------------------------------------------------
+    public void displayErrorMessage(String message)
+    {
+        statusLog.displayErrorMessage(message);
+    }
 
-		container.getChildren().add(doneCont);
+    /**
+     * Display info message
+     */
+    //----------------------------------------------------------
+    public void displayMessage(String message)
+    {
+        statusLog.displayMessage(message);
+    }
 
-		return container;
-	}
+    /**
+     * Clear error message
+     */
+    //----------------------------------------------------------
+    public void clearErrorMessage()
+    {
+        statusLog.clearErrorMessage();
+    }
 
-	// Create the status log field
-	//-------------------------------------------------------------
-	private MessageView createStatusLog(String initialMessage)
-	{
-
-		statusLog = new MessageView(initialMessage);
-
-		return statusLog;
-	}
-
-	//-------------------------------------------------------------
-	public void populateFields()
-	{
-
-	}
-	
-
-	//---------------------------------------------------------
-	public void updateState(String key, Object value)
-	{
-		if (key.equals("TransactionError") == true)
-		{
-			// display the passed text
-			displayErrorMessage((String)value);
-		}
-	}
-
-	/**
-	 * Display error message
-	 */
-	//----------------------------------------------------------
-	public void displayErrorMessage(String message)
-	{
-		statusLog.displayErrorMessage(message);
-	}
-
-	/**
-	 * Clear error message
-	 */
-	//----------------------------------------------------------
-	public void clearErrorMessage()
-	{
-		statusLog.clearErrorMessage();
-	}
 }
 
-
+//---------------------------------------------------------------
+//	Revision History:
+//
